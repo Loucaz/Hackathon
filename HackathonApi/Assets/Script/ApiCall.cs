@@ -63,7 +63,7 @@ public class ApiCall
 
     private async Task PostProductAsync(string stringContent)
     {
-        await client.PostAsync("https://localhost:7069/products", new StringContent(stringContent, Encoding.UTF8, "application/json"));
+        await client.PostAsync("https://localhost:5001/products", new StringContent(stringContent, Encoding.UTF8, "application/json"));
     }
 
 
@@ -85,7 +85,7 @@ public class ApiCall
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
-            RequestUri = new Uri("https://localhost:7069/products/categori/" + search),
+            RequestUri = new Uri("https://localhost:5001/products/categori/" + search),
         };
         using (var response = await client.SendAsync(request))
         {
