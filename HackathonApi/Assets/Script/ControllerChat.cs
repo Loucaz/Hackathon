@@ -27,7 +27,7 @@ public class ControllerChat : MonoBehaviour
     {
         if (String.IsNullOrEmpty(message.text))
             return;
-        AddMessage(message.text, "Player");
+        AddMessage(message.text, "Bob");
         message.text = "";
     }
     public void AddMessage(string message,string author)
@@ -40,6 +40,7 @@ public class ControllerChat : MonoBehaviour
     private IEnumerator SpritedAddMessage()
     {
 
+        ctp++;
         yield return new WaitForSeconds(1f);
         switch (ctp)
         {
@@ -58,6 +59,5 @@ public class ControllerChat : MonoBehaviour
 
         }
 
-        ctp++;
     }
 }

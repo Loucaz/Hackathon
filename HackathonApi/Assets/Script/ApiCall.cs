@@ -1,18 +1,20 @@
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using static SearchBar;
 
 public class ApiCall
 {
 
-    public JsonApi json;
+    HttpClient client = new HttpClient();
+    public MyJsonApi json;
 
     string req1 = "https://asos2.p.rapidapi.com/products/v2/list?store=US&offset=0&categoryId=";
     string req2 = "&limit=20&country=US&sort=freshness&currency=USD&sizeSchema=US&lang=en-US";
     public async Task CallAsync(string search)
     {
-        var client = new HttpClient();
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
@@ -28,19 +30,20 @@ public class ApiCall
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
             Debug.Log(body);
-            //JsonApi json = JsonUtility.FromJson<JsonApi>(body);
+            JsonApi jsonApi = JsonUtility.FromJson<JsonApi>(body);
 
-            json = JsonUtility.FromJson<JsonApi>(body);
+            //json = JsonUtility.FromJson<JsonApi>(body);
 
-            Debug.Log(json);
-            Debug.Log(json.searchTerm);
-            Debug.Log(json.itemCount);
+            Debug.Log(jsonApi);
+            Debug.Log(jsonApi.searchTerm);
+            Debug.Log(jsonApi.itemCount);
 
-            foreach (Product s in json.products)
+            foreach (Product s in jsonApi.products)
             {
                 Debug.Log(s.imageUrl);
+                s.categori = search;
+                await PostProductAsync(JsonUtility.ToJson(s));
             }
-
         }
     }
 
@@ -52,8 +55,45 @@ public class ApiCall
         public string categoryName;
         public int itemCount;
     }
+    [Serializable]
+    public class MyJsonApi
+    {
+        public Product[] products;
+    }
 
-    
+    private async Task PostProductAsync(string stringContent)
+    {
+        await client.PostAsync("https://localhost:7069/products", new StringContent(stringContent, Encoding.UTF8, "application/json"));
+    }
+
+
+    public async Task ControllerAsync(System.Collections.Generic.KeyValuePair<string, CodeBool> pair)
+    {
+        if (!pair.Value.actif)
+        {
+            await CallAsync(pair.Key);
+            SearchBar.instance.Search[pair.Key].actif = true;
+        }
+        await CallMyAsync(pair.Key);
+
+    }
+
+
+
+    public async Task CallMyAsync(string search)
+    {
+        var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri("https://localhost:7069/products/categori/" + search),
+        };
+        using (var response = await client.SendAsync(request))
+        {
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync();
+            json = JsonUtility.FromJson<MyJsonApi>("{\"products\":"+body+"}");
+        }
+    }
 }
 
 

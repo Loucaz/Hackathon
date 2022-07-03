@@ -41,7 +41,7 @@ public class Demo : MonoBehaviour
 	async Task StartAsync (string search = null)
 	{
 		ApiCall api = new ApiCall();
-		await api.CallAsync(SearchBar.getCode(search));
+		await api.ControllerAsync(SearchBar.instance.getCode(search));
 		catalogue = api.json.products;
 		GameObject buttonTemplate = transform.GetChild (0).gameObject;
 		GameObject g;
@@ -60,7 +60,7 @@ public class Demo : MonoBehaviour
 			g = Instantiate (buttonTemplate, transform);
 			StartCoroutine(DownloadImage(catalogue[i].imageUrl, g));
 			g.transform.GetChild (1).GetComponent <Text> ().text = catalogue [i].brandName;
-			g.transform.GetChild (2).GetComponent <Text> ().text = catalogue [i].imageUrl;
+			g.transform.GetChild (2).GetComponent <Text> ().text = catalogue [i].name;
 
 			/*g.GetComponent <Button> ().onClick.AddListener (delegate() {
 				ItemClicked (i);

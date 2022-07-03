@@ -5,7 +5,9 @@ public class Product
 {
     
         public int id;
-        public float timeElapsed;
-        public string brandName;
-        public string imageUrl;
+    public string brandName;
+    public string name;
+    public string imageUrl;
+        public string categori;
+
 }

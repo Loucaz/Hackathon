@@ -1,23 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class SearchBar 
+public class SearchBar : MonoBehaviour
 {
-    public static string getCode(string search)
+    public static SearchBar instance;
+    private void Awake()
     {
-        if (int.TryParse(search, out int n))
-            return search;
-        switch (search.ToLower())
+        if (instance != null)
         {
-            case "jean":
-                return "5230";
-            case "polo":
-                return "5229";
-            case "socks":
-                return "3764";
-            default:
-                return "4208";
+            Debug.LogWarning("Une instance de SearchBar est déjà existante!");
+            return;
+        }
+        instance = this;
+    }
+    public KeyValuePair<string, CodeBool> getCode(string search)
+    {
+        return new KeyValuePair<string, CodeBool>(search,Search[search]);
+    }
+
+    public Dictionary<string, CodeBool> Search = new Dictionary<string, CodeBool>
+    {
+        { "5230",new CodeBool("jean",false)},
+        { "5229",new CodeBool("polo",false)},
+        { "3764",new CodeBool("socks",false)},
+    };
+    public class CodeBool
+    {
+        public string name;
+        public bool actif;
+
+        public CodeBool(string name, bool actif)
+        {
+            this.name = name;
+            this.actif = actif;
         }
     }
+
+
 }
