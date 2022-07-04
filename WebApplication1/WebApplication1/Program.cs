@@ -1,18 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<TodoDb>(opt => opt.UseInMemoryDatabase("TodoList"));
 builder.Services.AddDbContext<ProductDb>(opt => opt.UseInMemoryDatabase("ProductList"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
-
-app.MapGet("/todoitems", async (TodoDb db) =>
-    await db.Todos.ToListAsync());
-
-app.MapGet("/todoitems/complete", async (TodoDb db) =>
-    await db.Todos.Where(t => t.IsComplete).ToListAsync());
 
 app.MapGet("/products", async (ProductDb db) =>
     await db.Products.ToListAsync());
@@ -28,41 +21,33 @@ app.MapPost("/products", async (Product product, ProductDb db) =>
     return Results.Created($"/products/{product.Id}", product);
 });
 
-app.MapGet("/todoitems/{id}", async (int id, TodoDb db) =>
-    await db.Todos.FindAsync(id)
-        is Todo todo
-            ? Results.Ok(todo)
+app.MapGet("/products/{id}", async (int id, ProductDb db) =>
+    await db.Products.FindAsync(id)
+        is Product product
+            ? Results.Ok(product)
             : Results.NotFound());
 
-app.MapPost("/todoitems", async (Todo todo, TodoDb db) =>
+
+app.MapPut("/products/{id}", async (int id, Product inputProduct, ProductDb db) =>
 {
-    db.Todos.Add(todo);
-    await db.SaveChangesAsync();
+    var product = await db.Products.FindAsync(id);
 
-    return Results.Created($"/todoitems/{todo.Id}", todo);
-});
+    if (product is null) return Results.NotFound();
 
-app.MapPut("/todoitems/{id}", async (int id, Todo inputTodo, TodoDb db) =>
-{
-    var todo = await db.Todos.FindAsync(id);
-
-    if (todo is null) return Results.NotFound();
-
-    todo.Name = inputTodo.Name;
-    todo.IsComplete = inputTodo.IsComplete;
+    product.name = inputProduct.name;
 
     await db.SaveChangesAsync();
 
     return Results.NoContent();
 });
 
-app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
+app.MapDelete("/products/{id}", async (int id, ProductDb db) =>
 {
-    if (await db.Todos.FindAsync(id) is Todo todo)
+    if (await db.Products.FindAsync(id) is Product product)
     {
-        db.Todos.Remove(todo);
+        db.Products.Remove(product);
         await db.SaveChangesAsync();
-        return Results.Ok(todo);
+        return Results.Ok(product);
     }
 
     return Results.NotFound();
@@ -70,13 +55,6 @@ app.MapDelete("/todoitems/{id}", async (int id, TodoDb db) =>
 
 app.Run();
 
-class Todo
-{
-    public int Id { get; set; }
-    public string? Name { get; set; }
-    public bool IsComplete { get; set; }
-
-}
 public class Product
 {
 
@@ -94,10 +72,3 @@ class ProductDb : DbContext
     public DbSet<Product> Products => Set<Product>();
 }
 
-class TodoDb : DbContext
-{
-    public TodoDb(DbContextOptions<TodoDb> options)
-        : base(options) { }
-
-    public DbSet<Todo> Todos => Set<Todo>();
-}
